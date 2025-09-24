@@ -1,0 +1,11 @@
+[versions]
+aws-sdk-jvm = "1.5.45"
+kotlin = "2.2.20"
+koog = "0.4.2"
+
+[libraries]
+bedrock-runtime-jvm = { module = "aws.sdk.kotlin:bedrockruntime-jvm", version.ref = "aws-sdk-jvm" }
+koog-agents = { module = "ai.koog:koog-agents", version.ref = "koog" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
