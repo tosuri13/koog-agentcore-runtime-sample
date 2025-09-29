@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  KARSRepository:
+    Type: "AWS::ECR::Repository"
+    Properties:
+      RepositoryName: "koog-agentcore-runtime-sample-repository"
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep only the latest image",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 1
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
+  KARSAgentCoreRuntime:
+    Type: "AWS::BedrockAgentCore::Runtime"
+    Properties:
+      AgentRuntimeArtifact:
+        ContainerConfiguration:
+          ContainerUri: !Sub "${KARSRepository.RepositoryUri}:latest"
+      AgentRuntimeName: "KoogAgentcoreRuntimeSampleAgent"
+      NetworkConfiguration:
+        NetworkMode: "PUBLIC"
+      RoleArn: !GetAtt KARSAgentCoreRuntimeRole.Arn
+
+  KARSAgentCoreRuntimeRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "bedrock-agentcore.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "koog-agentcore-runtime-sample-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "ECRImageAccess"
+                Effect: "Allow"
+                Action:
+                  - "ecr:BatchGetImage"
+                  - "ecr:GetDownloadUrlForLayer"
+                Resource: !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/*"
+              - Effect: "Allow"
+                Action:
+                  - "logs:DescribeLogStreams"
+                  - "logs:CreateLogGroup"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/bedrock-agentcore/runtimes/*"
+              - Effect: "Allow"
+                Action:
+                  - "logs:DescribeLogGroups"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*"
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*"
+              - Sid: "ECRTokenAccess"
+                Effect: "Allow"
+                Action:
+                  - "ecr:GetAuthorizationToken"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - "xray:PutTraceSegments"
+                  - "xray:PutTelemetryRecords"
+                  - "xray:GetSamplingRules"
+                  - "xray:GetSamplingTargets"
+                Resource: "*"
+              - Effect: "Allow"
+                Resource: "*"
+                Action: "cloudwatch:PutMetricData"
+                Condition:
+                  StringEquals:
+                    "cloudwatch:namespace": "bedrock-agentcore"
+              - Sid: "BedrockAgentCoreRuntime"
+                Effect: "Allow"
+                Action:
+                  - "bedrock-agentcore:InvokeAgentRuntime"
+                Resource: !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/*"
+              - Sid: "BedrockAgentCoreMemoryCreateMemory"
+                Effect: "Allow"
+                Action:
+                  - "bedrock-agentcore:CreateMemory"
+                Resource: "*"
+              - Sid: "BedrockAgentCoreMemory"
+                Effect: "Allow"
+                Action:
+                  - "bedrock-agentcore:CreateEvent"
+                  - "bedrock-agentcore:GetEvent"
+                  - "bedrock-agentcore:GetMemory"
+                  - "bedrock-agentcore:GetMemoryRecord"
+                  - "bedrock-agentcore:ListActors"
+                  - "bedrock-agentcore:ListEvents"
+                  - "bedrock-agentcore:ListMemoryRecords"
+                  - "bedrock-agentcore:ListSessions"
+                  - "bedrock-agentcore:DeleteEvent"
+                  - "bedrock-agentcore:DeleteMemoryRecord"
+                  - "bedrock-agentcore:RetrieveMemoryRecords"
+                Resource: !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:memory/*"
+              - Sid: "BedrockAgentCoreIdentityGetResourceApiKey"
+                Effect: "Allow"
+                Action:
+                  - "bedrock-agentcore:GetResourceApiKey"
+                Resource:
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default/apikeycredentialprovider/*"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/*"
+              - Sid: "BedrockAgentCoreIdentityGetResourceOauth2Token"
+                Effect: "Allow"
+                Action:
+                  - "bedrock-agentcore:GetResourceOauth2Token"
+                Resource:
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default/oauth2credentialprovider/*"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/*"
+              - Sid: "BedrockAgentCoreIdentityGetWorkloadAccessToken"
+                Effect: "Allow"
+                Action:
+                  - "bedrock-agentcore:GetWorkloadAccessToken"
+                  - "bedrock-agentcore:GetWorkloadAccessTokenForJWT"
+                  - "bedrock-agentcore:GetWorkloadAccessTokenForUserId"
+                Resource:
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/*"
+              - Sid: "BedrockModelInvocation"
+                Effect: "Allow"
+                Action:
+                  - "bedrock:InvokeModel"
+                  - "bedrock:InvokeModelWithResponseStream"
+                  - "bedrock:ApplyGuardrail"
+                Resource:
+                  - "arn:aws:bedrock:*::foundation-model/*"
+                  - !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:*"
+      RoleName: "koog-agentcore-runtime-sample-role"
