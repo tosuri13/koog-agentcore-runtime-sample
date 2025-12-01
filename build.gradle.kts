@@ -12,6 +12,7 @@ application {
 }
 
 dependencies {
+    implementation(libs.awssdk.auth.java)
     implementation(libs.bedrock.runtime.jvm)
     implementation(libs.koog.agents)
     implementation(libs.ktor.server.core)

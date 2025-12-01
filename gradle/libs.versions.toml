@@ -1,11 +1,13 @@
 [versions]
-aws-sdk-jvm = "1.5.45"
-koog = "0.5.2"
+aws-sdk-jvm = "1.5.93"
+aws-sdk-java = "2.39.5"
+koog = "0.5.3"
 kotlin = "2.2.20"
 ktor = "3.3.0"
 logback = "1.5.20"
 
 [libraries]
+awssdk-auth-java = { module = "software.amazon.awssdk:auth", version.ref = "aws-sdk-java" }
 bedrock-runtime-jvm = { module = "aws.sdk.kotlin:bedrockruntime-jvm", version.ref = "aws-sdk-jvm" }
 koog-agents = { module = "ai.koog:koog-agents", version.ref = "koog" }
 ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }

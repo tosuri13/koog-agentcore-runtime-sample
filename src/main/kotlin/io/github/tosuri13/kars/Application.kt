@@ -37,7 +37,7 @@ fun Application.module() {
                 call.respond(AgentResponse(response))
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respond(mapOf("error" to e.message, "stackTrace" to e.stackTraceToString()))
+                call.respond(mapOf("error" to e.message))
             }
         }
     }
