@@ -13,6 +13,7 @@ fun chatAgentStrategy(): AIAgentGraphStrategy<String, String> = strategy("chatAg
     edge(nodeStart forwardTo callLLM)
     edge(callLLM forwardTo executeTool onMultipleToolCalls { true })
     edge((callLLM forwardTo nodeFinish) transformed { it.first() } onAssistantMessage { true })
+
     edge(executeTool forwardTo sendToolResult)
     edge(sendToolResult forwardTo executeTool onMultipleToolCalls { true })
     edge((sendToolResult forwardTo nodeFinish) transformed { it.first() } onAssistantMessage { true })
