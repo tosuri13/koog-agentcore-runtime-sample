@@ -14,6 +14,8 @@ application {
 dependencies {
     implementation(libs.awssdk.auth.java)
     implementation(libs.bedrock.runtime.jvm)
+    implementation(libs.bedrock.agentcore.jvm)
+    implementation(libs.dotenv.kotlin)
     implementation(libs.koog.agents)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
@@ -24,4 +26,9 @@ dependencies {
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.logback.classic)
+}
+
+tasks.register<JavaExec>("invokeAgent") {
+    mainClass.set("io.github.tosuri13.kars.InvokeAgentKt")
+    classpath = sourceSets["main"].runtimeClasspath
 }

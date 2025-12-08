@@ -32,6 +32,9 @@ replay_pid*
 # misc
 .DS_Store
 
+# Environment variables
+.env
+
 # Ignore Gradle project-specific cache directory
 .gradle
 
